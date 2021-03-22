@@ -33,6 +33,7 @@ function CustomisableVariables
 	$global:AzureADlicenseGroup="O365-Licenses_AZURE_Microsoft_365_Phone_System"  # AD Group to Add Resource Accounts to
 	#                                                                             # In Order to Obtain relevant Licenses
 	$global:GALsearchScope=". All Company All Users" # For Limiting the Voice Search Scope If Needed
+	$global:TeamsSKU="MCOEV" # MSOL SKU For the MS Teams Licence you Utilise
 	$global:Language = "en-GB"
 	$global:Timezone = "GMT Standard Time"
 	$global:GreetingText = ".
@@ -588,7 +589,7 @@ function AutoAttendant
 		Write-Host Waiting For Resource Account TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix to Report A Phone System License in Azure AD - $Counter Seconds Elapsed
 		Start-Sleep -Seconds 10
 		$Counter = $Counter + 10
-	} until ((Get-MsolUser -ErrorAction SilentlyContinue –UserPrincipalName (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix)).Licenses[0].ServiceStatus | SELECT-OBJECT "MCOV")
+	} until ((Get-MsolUser -ErrorAction SilentlyContinue –UserPrincipalName (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix)).Licenses[0].ServiceStatus | Select-Object | where {$_.ProvisioningStatus -eq "Success"} | Select-Object $global:TeamsSKU)
 	#
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
