@@ -13,7 +13,13 @@
 #
 #   Version: 1.0 - 22/03/2021
 #
-#   - 22/03/2021 - V1.0 - Created by Headbolt
+#   22/03/2021 - V1.0 - Created by Headbolt
+#
+#   10/03/2023 - V1.1 - Updated by Headbolt
+#				Changing Holidays Sections to allow for a "Update the Holidays once a year"
+#				approach, where pre-existing holidays are updated and all Auto Attendants
+#				keep using the same ones, rather than creating new each year and updating 
+#				every auto attendant. Should have thought of that in the beginning :-)
 #
 ###############################################################################################################
 #
@@ -23,22 +29,31 @@
 #
 #   CUSTOMISABLE VARIABLES FUNCTION
 #
-function CustomisableVariables
+function LoggingVariables
 {
 	$global:LoggingEnabled="YES" # Enable Logging if needed
 	$global:LogFileLocation="....\TeamsPressOfficeCreation-Log.log" # Location Of LogFile if Enabled
+#
+}
+#
+###############################################################################################################
+#
+#   CUSTOMISABLE VARIABLES FUNCTION
+#
+function CustomisableVariables
+{
 	$global:AAD_Sync_Server="Server.domain.com" # FQDN of the AAD Sync Server
 	$global:AAD_Sync_Server_Sync_Script="C:\Scripts\ManualADSync.ps1" # Location on AAD Sync Server of a Manual AAD Sync Script
 	$global:OnPremConnectionUrl="http://Server.domain.com/PowerShell/" # URL For On Prem Hybrid Exchange Server
 	$global:AzureADlicenseGroup="O365-Licenses_AZURE_Microsoft_365_Phone_System"  # AD Group to Add Resource Accounts to
 	#                                                                             # In Order to Obtain relevant Licenses
-	$global:GALsearchScope=". All Company All Users" # For Limiting the Voice Search Scope If Needed
 	$global:TeamsSKU="MCOEV" # MSOL SKU For the MS Teams Licence you Utilise
 	$global:Language = "en-GB"
 	$global:Timezone = "GMT Standard Time"
 	$global:GreetingText = ".
-	Thank you for calling the $ClientName Press Office.
+	Thank you for calling the $global:ClientName Press Office.
 	Please hold while we connect your call"
+	$global:PhoneNumberType = "DirectRouting"
 #
 }
 #
@@ -58,40 +73,66 @@ function OrgUnit
 #
 ###############################################################################################################
 #
+#   GLOBAL ADDRESS LIST SEARCH SCOPE FUNCTION
+#
+function GlobalAddressListSearchScope
+{
+	# Assigning Specific Dist Lists's to Specific Company Prefixes eg.
+	#if ( "Company" -eq $CompanyPrefix )
+	#{
+	#    $global:GALsearchScope="distlist"
+	#}
+	#
+}
+#
+###############################################################################################################
+#
 #   HOLIDAYS FUNCTION
 #
 function Holidays
 {
-	Write-Host 'Xmas 2020'
-	$Xmas2020CallFlow = New-CsAutoAttendantCallFlow -Name "Christmas 2020" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$Xmas2020CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 849edeee-2ce4-4485-9e91-1eb9552fbdfa -CallFlowId $Xmas2020CallFlow.Id
-	Write-Host 'New Year 2021'
-	$NewYear2021CallFlow = New-CsAutoAttendantCallFlow -Name "New Year 2021" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$NewYear2021CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 745ed586-02e2-4661-b342-d04d946cda0e -CallFlowId $NewYear2021CallFlow.Id
-	Write-Host 'Easter 2021'
-	$Easter2021CallFlow = New-CsAutoAttendantCallFlow -Name "Easter 2021" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$Easter2021CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 4380e982-68ef-4284-8996-4e1d3b460df6 -CallFlowId $Easter2021CallFlow.Id
-	Write-Host 'May Day Bank 2021'
-	$MayDay2021CallFlow = New-CsAutoAttendantCallFlow -Name "May Day 2021" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$MayDay2021CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 73a738ea-4a04-4319-9987-398323d4c256 -CallFlowId $MayDay2021CallFlow.Id
-	Write-Host 'Spring Bank 2021'
-	$SpringBank2021CallFlow = New-CsAutoAttendantCallFlow -Name "Spring Bank Holiday 2021" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$SpringBank2021CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 3553d98d-9ba1-46d2-a277-6758601c160b -CallFlowId $SpringBank2021CallFlow.Id
-	Write-Host 'Summer 2021'
-	$Summer2021CallFlow = New-CsAutoAttendantCallFlow -Name "Summer Bank Holiday 2021" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$Summer2021CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 08f479c3-5a31-496e-8abc-c9eb022d1ffe -CallFlowId $Summer2021CallFlow.Id
-	Write-Host 'Xmas 2021'
-	$Xmas2021CallFlow = New-CsAutoAttendantCallFlow -Name "Christmas 2021" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$Xmas2021CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId a59a749e-a808-46b8-9897-c9d39b4232b6 -CallFlowId $Xmas2021CallFlow.Id
-	Write-Host 'New Year 2022'
-	$NewYear2022CallFlow = New-CsAutoAttendantCallFlow -Name "New Year 2022" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
-	$NewYear2022CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 4d3da958-12cb-419f-aec3-e12f7a4902df -CallFlowId $NewYear2022CallFlow.Id
+	#
+	Write-Host 'Easter'
+	$EasterCallFlow = New-CsAutoAttendantCallFlow -Name "UK 1 - Easter" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$EasterCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId f500f092-889a-4404-af7f-64157a228889 -CallFlowId $EasterCallFlow.Id
+	Write-Host 'May Day Bank Holiday'
+	$MayDayCallFlow = New-CsAutoAttendantCallFlow -Name "UK 2 - May Day" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$MayDayCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 01e7a055-1c2c-4baa-a792-58675db5f3d1 -CallFlowId $MayDayCallFlow.Id
+	Write-Host 'Spring Bank Holiday'
+	$SpringBankCallFlow = New-CsAutoAttendantCallFlow -Name "UK 3 - Spring Bank Holiday" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$SpringBankCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 122be4d9-a17c-4d65-8776-88e9b656b92b -CallFlowId $SpringBankCallFlow.Id
+	Write-Host 'Summer Bank Holiday'
+	$SummerCallFlow = New-CsAutoAttendantCallFlow -Name "UK 4 - Summer Bank Holiday" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$SummerCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId a78a7a35-2606-4541-a2cd-7fc6cb443f75 -CallFlowId $SummerCallFlow.Id
+	Write-Host 'Xmas'
+	$XmasCallFlow = New-CsAutoAttendantCallFlow -Name "UK 5 - Christmas" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$XmasCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 2d22113b-a4c3-4e37-80db-126b3efa4696 -CallFlowId $XmasCallFlow.Id
+	Write-Host 'New Year'
+	$NewYearCallFlow = New-CsAutoAttendantCallFlow -Name "UK 6 - New Year 2023" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$NewYearCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 77df3a27-2a4f-4de6-8737-37fd627ed551 -CallFlowId $NewYearCallFlow.Id
+	#
+	Write-Host 'Additional 1'
+	$UKadditional1CallFlow = New-CsAutoAttendantCallFlow -Name "UK 7 - Additional 1" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$UKadditional1CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 49f8ade4-9963-49f2-ae64-bce6e5683be2 -CallFlowId $UKadditional1CallFlow.Id
+	#
+	Write-Host 'Additional 2'
+	$UKadditional2CallFlow = New-CsAutoAttendantCallFlow -Name "UK 8 - Additional 2" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$UKadditional2CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 4d3da958-12cb-419f-aec3-e12f7a4902df -CallFlowId $UKadditional2CallFlow.Id
+	#
+	Write-Host 'Additional 3'
+	$UKadditional3CallFlow = New-CsAutoAttendantCallFlow -Name "UK 9 - Additional 3" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$UKadditional3CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId a59a749e-a808-46b8-9897-c9d39b4232b6 -CallFlowId $UKadditional3CallFlow.Id
+	#
+	Write-Host 'Additional 4'
+	$UKadditional4CallFlow = New-CsAutoAttendantCallFlow -Name "UK 10 - Additional 4" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$UKadditional4CallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 4380e982-68ef-4284-8996-4e1d3b460df6 -CallFlowId $UKadditional4CallFlow.Id
 	#
 	# Set Up Call Flows and Call Handling $AfterHoursCallFlow and $AfterHoursCallHandlingAssociation MUST always
 	# Remain and be first in their respective lists when Holidays are Updated
+	# Schedule ID's are found by the following command "Get-CsOnlineSchedule | ft Name, Id"
 	#
-	$global:CallFlows=@($AfterHoursCallFlow, $Xmas2020CallFlow, $NewYear2021CallFlow, $Easter2021CallFlow, $MayDay2021CallFlow, $SpringBank2021CallFlow, $Summer2021CallFlow, $Xmas2021CallFlow, $NewYear2022CallFlow)
-	$global:CallHandlingAssociations=@($AfterHoursCallHandlingAssociation, $Xmas2020CallHandlingAssociation, $NewYear2021CallHandlingAssociation, $Easter2021CallHandlingAssociation, $MayDay2021CallHandlingAssociation, $SpringBank2021CallHandlingAssociation, $Summer2021CallHandlingAssociation, $Xmas2021CallHandlingAssociation, $NewYear2022CallHandlingAssociation)
+	$global:CallFlows=@($AfterHoursCallFlow, $EasterCallFlow, $MayDayCallFlow, $SpringBankCallFlow, $SummerCallFlow, $XmasCallFlow, $NewYearCallFlow, $UKadditional1CallFlow, $UKadditional2CallFlow, $UKadditional3CallFlow, $UKadditional4CallFlow)
+	$global:CallHandlingAssociations=@($AfterHoursCallHandlingAssociation, $EasterCallHandlingAssociation, $MayDayCallHandlingAssociation, $SpringBankCallHandlingAssociation, $SummerCallHandlingAssociation, $XmasCallHandlingAssociation, $NewYearCallHandlingAssociation, $UKadditional1CallHandlingAssociation, $UKadditional2CallHandlingAssociation, $UKadditional3CallHandlingAssociation, $UKadditional4CallHandlingAssociation)
 	#
 }
 #
@@ -136,7 +177,8 @@ function Connections
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host "Connecting To On-Prem Systems"
 	Write-Host '' # Output To Make Screen Easier for User to read.
-	$OnPremUserCredential = Get-Credential -Credential $global:AdminUser
+#	$OnPremUserCredential = Get-Credential -Credential $global:AdminUser
+	$OnPremUserCredential = Get-Credential
 	# Connect To On-Prem Exchange
 	$OnPremSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $global:OnPremConnectionUrl -Authentication Kerberos -Credential $OnPremUserCredential
 	Import-PSSession $OnPremSession -DisableNameChecking -AllowClobber -WarningAction SilentlyContinue
@@ -147,20 +189,24 @@ function Connections
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	$AzureUserCredential = Get-Credential -Credential $global:AdminUser
 	# Connect to Azure AD
-	Connect-AzureAD -Credential $AzureUserCredential
+#	Connect-AzureAD -Credential $AzureUserCredential
+	Connect-AzureAD
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host "Connecting To Teams Admin"
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	# Connect to Teams
-	Connect-MicrosoftTeams -Credential $AzureUserCredential # Needs Teams Module https://www.powershellgallery.com/packages/MicrosoftTeams/2.0.0
+#	Connect-MicrosoftTeams -Credential $AzureUserCredential # Needs Teams Module https://www.powershellgallery.com/packages/MicrosoftTeams/2.0.0
+	Connect-MicrosoftTeams # Needs Teams Module https://www.powershellgallery.com/packages/MicrosoftTeams/2.0.0
+	#
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host "Connecting To MS Online Services"
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	# Connect to MSOL
-	Connect-MsolService -Credential $AzureUserCredential
+#	Connect-MsolService -Credential $AzureUserCredential
+	Connect-MsolService
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 }
 #
@@ -208,12 +254,12 @@ function CollectVariables
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 	#
-	$InputVarible="Admin User Account You Want To Use"
-	$InputVaribleExplanation="fredsmithBO@domain.com"
-	UserInput
-	$global:AdminUser=$global:Input
-	Write-Host '' # Output To Make Screen Easier for User to read.
-	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
+#	$InputVarible="Admin User Account You Want To Use"
+#	$InputVaribleExplanation="fredsmithBO@domain.com"
+#	UserInput
+#	$global:AdminUser=$global:Input
+#	Write-Host '' # Output To Make Screen Easier for User to read.
+#	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 	#
 	$InputVarible="CompanyPrefix"
 	$InputVaribleExplanation="COM1"
@@ -387,12 +433,12 @@ function CreateResourceAccount
 	#
 	if ( $global:ResourceAccountToCreate -eq "CQN" )
 	{
-		$global:AppID=“11cd3e2e-fccb-42ad-ad00-878b93575e07"
+		$global:AppID="11cd3e2e-fccb-42ad-ad00-878b93575e07"
 	}
 	#
 	if ( $global:ResourceAccountToCreate -eq "AA" )
 	{
-		$global:AppID=“ce933385-9390-45d1-9512-c8d228074e07"
+		$global:AppID="ce933385-9390-45d1-9512-c8d228074e07"
 	}
 	#
 	Write-Host 'Creating Resource Account'
@@ -450,10 +496,11 @@ function CreateCallQueue
 	Write-Host Creating Call Queue (Write-Output "$ClientName PO – Call Queue $global:DistListType")
 	$CallQueueDistList = (Get-AzureADGroup -SearchString (Write-Output TCQ-$CompanyPrefix-"$ClientName_NoSpace"PO_$global:DistListToCreate)).ObjectId
 	Write-Host '' # Output To Make Screen Easier for User to read.
-	Write-Host Running Command '"New-CsCallQueue -Name'(Write-Output "$ClientName PO – Call Queue $global:DistListType")'-Tenant 7768bca1-9fc1-4f38-b39e-e75e9aebb498 -RoutingMethod Attendant -DistributionLists'$CallQueueDistList' -AllowOptOut $False -ConferenceMode $True -PresenceBasedRouting $False -AgentAlertTime 30 -LanguageId en-GB -OverflowThreshold 50 -OverflowAction DisconnectWithBusy -EnableOverflowSharedVoicemailTranscription $True -TimeoutThreshold 30 -TimeoutAction SharedVoiceMail -TimeoutActionTarget '$CallQueueDistList'-TimeoutSharedVoicemailTextToSpeechPrompt "We’re sorry but we have not been able to connect your call.
+#	Write-Host Running Command '"New-CsCallQueue -Name'(Write-Output "$ClientName PO – Call Queue $global:DistListType")'-Tenant 7768bca1-9fc1-4f38-b39e-e75e9aebb498 -RoutingMethod Attendant -DistributionLists'$CallQueueDistList' -AllowOptOut $False -ConferenceMode $True -PresenceBasedRouting $False -AgentAlertTime 30 -LanguageId en-GB -OverflowThreshold 50 -OverflowAction DisconnectWithBusy -EnableOverflowSharedVoicemailTranscription $True -TimeoutThreshold 30 -TimeoutAction SharedVoiceMail -TimeoutActionTarget '$CallQueueDistList'-TimeoutSharedVoicemailTextToSpeechPrompt "We’re sorry but we have not been able to connect your call.
+	Write-Host Running Command '"New-CsCallQueue -Name'(Write-Output "$ClientName PO – Call Queue $global:DistListType")'-RoutingMethod Attendant -DistributionLists'$CallQueueDistList' -AllowOptOut $False -ConferenceMode $True -PresenceBasedRouting $False -AgentAlertTime 30 -LanguageId en-GB -OverflowThreshold 50 -OverflowAction DisconnectWithBusy -EnableOverflowSharedVoicemailTranscription $True -TimeoutThreshold 30 -TimeoutAction SharedVoiceMail -TimeoutActionTarget '$CallQueueDistList'-TimeoutSharedVoicemailTextToSpeechPrompt "We’re sorry but we have not been able to connect your call.
 	Write-Host 'Please leave a message and a member of the Team will get back to you as soon as possible." -EnableTimeoutSharedVoicemailTranscription $True -UseDefaultMusicOnHold $True -WarningAction SilentlyContinue | Out-Null"'
 	#
-	New-CsCallQueue -Name (Write-Output "$ClientName PO – Call Queue $global:DistListType") -Tenant 7768bca1-9fc1-4f38-b39e-e75e9aebb498 -RoutingMethod Attendant -DistributionLists $CallQueueDistList -AllowOptOut $False -ConferenceMode $True -PresenceBasedRouting $False -AgentAlertTime 30 -LanguageId en-GB -OverflowThreshold 50 -OverflowAction DisconnectWithBusy -EnableOverflowSharedVoicemailTranscription $True -TimeoutThreshold 30 -TimeoutAction SharedVoiceMail -TimeoutActionTarget $CallQueueDistList -TimeoutSharedVoicemailTextToSpeechPrompt "We’re sorry but we have not been able to connect your call.
+	New-CsCallQueue -Name (Write-Output "$ClientName PO – Call Queue $global:DistListType") -RoutingMethod Attendant -DistributionLists $CallQueueDistList -AllowOptOut $False -ConferenceMode $True -PresenceBasedRouting $False -AgentAlertTime 30 -LanguageId en-GB -OverflowThreshold 50 -OverflowAction DisconnectWithBusy -EnableOverflowSharedVoicemailTranscription $True -TimeoutThreshold 30 -TimeoutAction SharedVoiceMail -TimeoutActionTarget $CallQueueDistList -TimeoutSharedVoicemailTextToSpeechPrompt "We’re sorry but we have not been able to connect your call.
 	Please leave a message and a member of the Team will get back to you as soon as possible." -EnableTimeoutSharedVoicemailTranscription $True -UseDefaultMusicOnHold $True -WarningAction SilentlyContinue | Out-Null
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
@@ -464,7 +511,9 @@ function CreateCallQueue
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	#
-	$ResourceAccountId = (Get-CsOnlineUser (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix)).ObjectId
+	$ResourceAccount = (Get-CsOnlineUser (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix))
+	$ResourceAccountId = ($ResourceAccount).Identity
+#	$ResourceAccountId = (Get-CsOnlineUser (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix)).ObjectId
 	$CallQueue = (Get-CsCallQueue -NameFilter (Write-Output "$ClientName PO – Call Queue $global:DistListType") -WarningAction SilentlyContinue).Identity
 	Write-Host Associating Call Queue '"'$ClientName PO – Call Queue $global:DistListType '"' To Resource Account '"'TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix '"'
 	Write-Host '' # Output To Make Screen Easier for User to read.
@@ -516,8 +565,13 @@ function AutoAttendant
 	#
 	Write-Host 'Setting Call Queue Routing Targets'
 	Write-Host '' # Output To Make Screen Easier for User to read.
-	$daytargetCQappinstance = (Get-CsOnlineUser -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-CQD@$CompanyDomainNamePrefix)).ObjectId 
-	$nighttargetCQappinstance = (Get-CsOnlineUser -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-CQN@$CompanyDomainNamePrefix)).ObjectId 
+	#
+	$daytargetCQapp = (Get-CsOnlineUser -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-CQD@$CompanyDomainNamePrefix))
+	$daytargetCQappinstance = ($daytargetCQapp).Identity 
+	$nighttargetCQapp = (Get-CsOnlineUser -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-CQN@$CompanyDomainNamePrefix)) 
+	$nighttargetCQappinstance = ($nighttargetCQapp).Identity 
+#	$daytargetCQappinstance = (Get-CsOnlineUser -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-CQD@$CompanyDomainNamePrefix)).ObjectId 
+#	$nighttargetCQappinstance = (Get-CsOnlineUser -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-CQN@$CompanyDomainNamePrefix)).ObjectId 
 	#
 	Write-Host 'Setting Business Hours Menu Options'
 	Write-Host '' # Output To Make Screen Easier for User to read.
@@ -564,7 +618,12 @@ function AutoAttendant
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host 'Creating AutoAttendant'
 	#
-	New-CsAutoAttendant -Name $AutoAttendantName -LanguageId $global:Language -DefaultCallFlow $BusinessHoursCallFlow -CallFlows @($global:CallFlows) -TimeZoneId $global:Timezone -Operator $operator -CallHandlingAssociations @($global:CallHandlingAssociations) -InclusionScope $DialScope | Out-Null
+	Write-Host '' # Output To Make Screen Easier for User to read.	
+#	Write-Host Running Command '"'New-CsAutoAttendant -Name $AutoAttendantName -LanguageId $global:Language -DefaultCallFlow $BusinessHoursCallFlow -CallFlows @($global:CallFlows) -TimeZoneId $global:Timezone -Operator $operator -CallHandlingAssociations @($global:CallHandlingAssociations) -InclusionScope $DialScope | Out-Null'"'
+	Write-Host Running Command '"'New-CsAutoAttendant -Name $AutoAttendantName -LanguageId $global:Language -DefaultCallFlow $BusinessHoursCallFlow -CallFlows @($global:CallFlows) -TimeZoneId $global:Timezone -CallHandlingAssociations @($global:CallHandlingAssociations) -InclusionScope $DialScope '|' Out-Null'"'
+	Write-Host '' # Output To Make Screen Easier for User to read.	
+#	New-CsAutoAttendant -Name $AutoAttendantName -LanguageId $global:Language -DefaultCallFlow $BusinessHoursCallFlow -CallFlows @($global:CallFlows) -TimeZoneId $global:Timezone -Operator $operator -CallHandlingAssociations @($global:CallHandlingAssociations) -InclusionScope $DialScope | Out-Null
+	New-CsAutoAttendant -Name $AutoAttendantName -LanguageId $global:Language -DefaultCallFlow $BusinessHoursCallFlow -CallFlows @($global:CallFlows) -TimeZoneId $global:Timezone -CallHandlingAssociations @($global:CallHandlingAssociations) -InclusionScope $DialScope | Out-Null
 	#
 	$ResAccType="AA"
 	AADsyncCheck-RA
@@ -573,11 +632,13 @@ function AutoAttendant
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	#
-	$ResourceAccountId = (Get-CsOnlineUser (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix)).ObjectId
+	$ResourceAccount = (Get-CsOnlineUser (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix))
+	$ResourceAccountId = ($ResourceAccount).Identity
+#	$ResourceAccountId = (Get-CsOnlineUser (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix)).ObjectId
 	$AutoAttendant = (Get-CsAutoAttendant -NameFilter (Write-Output "$ClientName PO – Auto Attendant") -WarningAction SilentlyContinue).Identity
 	Write-Host Associating Auto Attendant "$ClientName PO – Auto Attendant" To Resource Account '"'TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-$ResAccType@$CompanyDomainNamePrefix '"'
 	Write-Host '' # Output To Make Screen Easier for User to read.
-	Write-Host Running Command '"New-CsOnlineApplicationInstanceAssociation -Identities'@($ResourceAccountId) '-ConfigurationId'$AutoAttendant'-ConfigurationType AutoAttendant"'
+	Write-Host Running Command '"New-CsOnlineApplicationInstanceAssociation -Identities'@($ResourceAccountId) '-ConfigurationId'$AutoAttendant' -ConfigurationType AutoAttendant"'
 	New-CsOnlineApplicationInstanceAssociation -Identities @($ResourceAccountId) -ConfigurationId $AutoAttendant -ConfigurationType AutoAttendant | Out-Null
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
@@ -596,8 +657,13 @@ function AutoAttendant
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host 'Assigning Phone Number to Resource Account'
 	Write-Host '' # Output To Make Screen Easier for User to read.
-	Write-Host Running Command '"Set-CsOnlineApplicationInstance -Identity (Write-Output 'TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix') -OnpremPhoneNumber '$OnpremPhoneNumber'"'
-	Set-CsOnlineApplicationInstance -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix) -OnpremPhoneNumber $OnpremPhoneNumber
+#	Write-Host Running Command '"Set-CsOnlineApplicationInstance -Identity (Write-Output 'TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix') -OnpremPhoneNumber '$OnpremPhoneNumber'"'
+	Write-Host Running Command '"Set-CsPhoneNumberAssignment -Identity (Write-Output 'TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix') -PhoneNumber '$OnpremPhoneNumber -PhoneNumberType $global:PhoneNumberType'"'
+	#
+	Start-Sleep -Seconds 30
+	#
+#	Set-CsOnlineApplicationInstance -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix) -OnpremPhoneNumber $OnpremPhoneNumber
+	Set-CsPhoneNumberAssignment -Identity (Write-Output TRA-$CompanyPrefix-"$ClientName_NoSpace"PO-AA@$CompanyDomainNamePrefix) -PhoneNumber $OnpremPhoneNumber -PhoneNumberType $global:PhoneNumberType
 	Write-Host '' # Output To Make Screen Easier for User to read.
 	Write-Host '-------------------------------------------------------------------------------------------------------------------' # Output To Make Screen Easier for User to read.
 }
@@ -614,11 +680,15 @@ function AutoAttendant
 #
 Write-Host '' # Output To Make Screen Easier for User to read.
 #
-CustomisableVariables
+LoggingVariables
 #
 Logging
 #
 CollectVariables
+#
+GlobalAddressListSearchScope
+#
+CustomisableVariables
 #
 Connections
 #
