@@ -108,7 +108,7 @@ function Holidays
 	$XmasCallFlow = New-CsAutoAttendantCallFlow -Name "UK 5 - Christmas" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
 	$XmasCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 2d22113b-a4c3-4e37-80db-126b3efa4696 -CallFlowId $XmasCallFlow.Id
 	Write-Host 'New Year'
-	$NewYearCallFlow = New-CsAutoAttendantCallFlow -Name "UK 6 - New Year 2023" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
+	$NewYearCallFlow = New-CsAutoAttendantCallFlow -Name "UK 6 - New Year" -Greetings @($greetingPrompt) -Menu $afterHoursMenu
 	$NewYearCallHandlingAssociation = New-CsAutoAttendantCallHandlingAssociation -Type Holiday -ScheduleId 77df3a27-2a4f-4de6-8737-37fd627ed551 -CallFlowId $NewYearCallFlow.Id
 	#
 	Write-Host 'Additional 1'
